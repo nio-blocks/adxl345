@@ -1,6 +1,9 @@
 from enum import Enum
 import itertools
 import math
+import statistics
+import threading
+import time
 
 from nio.common.block.base import Block
 from nio.common.signal.base import Signal
@@ -79,7 +82,22 @@ class AccelerometerChip(Block):
         self._job = None
         if self.sample != SampleTypes.Last:
             self._samples = []
-            self._job = Job(self._sample, self.interval, True)
+            #self._job = Job(self._sample, self.interval, True)
+            self._thread = threading.Thread(target=self._sample_threaded)
+            sleeptime = self.interval.seconds + self.interval.microseconds * 1e-6
+            self._kill = False
+            self._thread.start()
+
+    def stop(self):
+        super().stop()
+        self._kill = True
+
+    def _sample_threaded(self):
+        sleeptime = self.interval.seconds + self.interval.microseconds * 1e-6
+        while not self._kill:
+            print("Taking data", time.time())
+            self._sample()
+            time.sleep(sleeptime)
 
     def _sample(self):
         self._samples.append(self._accel.read())
@@ -112,13 +130,18 @@ class AccelerometerChip(Block):
 
             max_i = sample_gs.index(max(sample_gs))
             min_i = sample_gs.index(min(sample_gs))
-            avg_gs = sum(sample_gs) / len(sample_gs)
+            mean_gs = statistics.mean(sample_gs)
+            if len(sample_gs) >= 2:
+                stdev_gs = statistics.stdev(sample_gs, mean_gs)
+            else:
+                stdev_gs = None
 
             value = {"max": samples[max_i],
                      "min": samples[min_i],
-                     "avg": avg_gs,
+                     "mean": mean_gs,
+                     "stdev": stdev_gs,
                      "last": samples[-1]
-                    }
+            }
 
         name = self.name
         for s in signals:

@@ -66,4 +66,5 @@ class TestAccelerometer(NIOBlockTestCase):
         accel.start()
         print("Sampling Statistics")
         keep_calling(sample, accel)
+        accel.stop()
 
