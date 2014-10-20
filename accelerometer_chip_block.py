@@ -64,7 +64,7 @@ class AccelerometerChip(Block):
     set of input pins.
 
     """
-    name = StringProperty(title="Name", default="pin{}_value")
+    signal_name = StringProperty(title="Name", default="value")
     address = IntProperty(default=0x53, title="Address")
     chip = SelectProperty(ChipTypes, title="Chip", default=ChipTypes.ADXL345)
     interval = TimeDeltaProperty(title="Sampling Period", default={"microseconds": 50000})
@@ -95,7 +95,6 @@ class AccelerometerChip(Block):
     def _sample_threaded(self):
         sleeptime = self.interval.seconds + self.interval.microseconds * 1e-6
         while not self._kill:
-            print("Taking data", time.time())
             self._sample()
             time.sleep(sleeptime)
 
@@ -105,6 +104,11 @@ class AccelerometerChip(Block):
     def process_signals(self, signals):
         if self.sample == SampleTypes.Last:
             value = self._accel.read()
+            gval = sum(n**2 for n in value)
+            gval = math.sqrt(gval)
+            value = {"last": value,
+                     "last_magnitude": gval,
+            }
         else:
             samples = []
             pop = self._samples.pop
@@ -128,8 +132,10 @@ class AccelerometerChip(Block):
             # take their sqare root to get the vector value
             sample_gs = tuple(map(math.sqrt, sample_gs))
 
-            max_i = sample_gs.index(max(sample_gs))
-            min_i = sample_gs.index(min(sample_gs))
+            max_g = max(sample_gs)
+            min_g = min(sample_gs)
+            max_i = sample_gs.index(max_g)
+            min_i = sample_gs.index(min_g)
             mean_gs = statistics.mean(sample_gs)
             if len(sample_gs) >= 2:
                 stdev_gs = statistics.stdev(sample_gs, mean_gs)
@@ -140,10 +146,13 @@ class AccelerometerChip(Block):
                      "min": samples[min_i],
                      "mean": mean_gs,
                      "stdev": stdev_gs,
-                     "last": samples[-1]
+                     "last": samples[-1],
+                     "max_magnitude": max_g,
+                     "min_magnitude": min_g,
+                     "last_magnitude": sample_gs[-1]
             }
 
-        name = self.name
+        name = self.signal_name
         for s in signals:
             setattr(s, name, value)
 
