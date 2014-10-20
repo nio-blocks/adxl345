@@ -16,14 +16,27 @@ from nio.common.discovery import Discoverable, DiscoverableType
 from nio.modules.scheduler import Job
 from nio.modules.threading import spawn
 
-
 def get_adxl345():
-    from adxl345.adxl345 import ADXL345
-    class adxl345(ADXL345):
+    from .adxl345 import adxl345
+    class obj(adxl345.ADXL345):
         def read(self):
-            out = self.getAxes()
+            out = self.getAxes(True)
             return out['x'], out['y'], out['z']
-    return adxl345
+
+        def set_range(self, grange):
+            if grange == 2:
+                val = adxl345.RANGE_2G
+            elif grange == 4:
+                val = adxl345.RANGE_4G
+            elif grange == 8:
+                val = adxl345.RANGE_8G
+            elif grange == 16:
+                val = adxl345.RANGE_16G
+            else:
+                raise ValueError(grange)
+            return self.setRange(val)
+
+    return obj
 
 def avg(array):
     return sum(array) / len(array)
@@ -34,6 +47,12 @@ class ChipTypes(Enum):
 class SampleTypes(Enum):
     Stats = "stats"
     Last = "last"
+
+class Ranges(Enum):
+    _2G =  2
+    _4G =  4
+    _8G =  8
+    _16G = 16
 
 @Discoverable(DiscoverableType.block)
 class AccelerometerChip(Block):
@@ -47,12 +66,15 @@ class AccelerometerChip(Block):
     chip = SelectProperty(ChipTypes, title="Chip", default=ChipTypes.ADXL345)
     interval = TimeDeltaProperty(title="Sampling Period", default={"microseconds": 50000})
     sample = SelectProperty(SampleTypes, title="Sample Type", default=SampleTypes.Stats)
+    range = SelectProperty(Ranges, title="G Range", default=Ranges._2G)
 
     def configure(self, context):
         super().configure(context)
         if self.chip == ChipTypes.ADXL345:
             obj = get_adxl345()
-            self._accel = obj(self.address)
+
+        self._accel = obj(self.address)
+        self._accel.set_range(self.range.value)
 
         self._job = None
         if self.sample != SampleTypes.Last:
