@@ -5,6 +5,7 @@ import statistics
 import threading
 import time
 
+from . import adxl345
 from nio.common.block.base import Block
 from nio.common.signal.base import Signal
 from nio.metadata.properties.select import SelectProperty
@@ -20,7 +21,6 @@ from nio.modules.scheduler import Job
 from nio.modules.threading import spawn
 
 def get_adxl345():
-    from .adxl345 import adxl345
     class obj(adxl345.ADXL345):
         def read(self):
             out = self.getAxes(True)
