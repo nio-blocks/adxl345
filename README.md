@@ -3,4 +3,4 @@ Accelerometer Chips
 
 repository for accelerometer chips that are interfaced through I2C and SPI
 
-- smbus module for I2C communication `git install https://github.com/cloudformdesign/adxl345-python3/archive/master.zip`
+Follow the instructions [here](https://learn.adafruit.com/adafruits-raspberry-pi-lesson-4-gpio-setup/configuring-i2c) for getting smbus and I2C set up before installing this block
