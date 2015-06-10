@@ -1,3 +1,0 @@
-[submodule "adxl345"]
-	path = adxl345
-	url = git@github.com:cloudformdesign/adxl345-python3.git

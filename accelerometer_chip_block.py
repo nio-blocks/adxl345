@@ -5,23 +5,18 @@ import statistics
 import threading
 import time
 
+from . import adxl345
 from nio.common.block.base import Block
-from nio.common.signal.base import Signal
 from nio.metadata.properties.select import SelectProperty
-from nio.metadata.properties.list import ListProperty
-from nio.metadata.properties.string import StringProperty
 from nio.metadata.properties.int import IntProperty
 from nio.metadata.properties.string import StringProperty
-from nio.metadata.properties.bool import BoolProperty
 from nio.metadata.properties.timedelta import TimeDeltaProperty
-from nio.metadata.properties.holder import PropertyHolder
 from nio.common.discovery import Discoverable, DiscoverableType
-from nio.modules.scheduler import Job
-from nio.modules.threading import spawn
+
 
 def get_adxl345():
-    from .adxl345 import adxl345
     class obj(adxl345.ADXL345):
+
         def read(self):
             out = self.getAxes(True)
             return out['x'], out['y'], out['z']
@@ -41,21 +36,26 @@ def get_adxl345():
 
     return obj
 
+
 def avg(array):
     return sum(array) / len(array)
 
+
 class ChipTypes(Enum):
     ADXL345 = "ADXL345"
+
 
 class SampleTypes(Enum):
     Stats = "stats"
     Last = "last"
 
+
 class Ranges(Enum):
-    _2G =  2
-    _4G =  4
-    _8G =  8
+    _2G = 2
+    _4G = 4
+    _8G = 8
     _16G = 16
+
 
 @Discoverable(DiscoverableType.block)
 class AccelerometerChip(Block):
@@ -67,8 +67,14 @@ class AccelerometerChip(Block):
     signal_name = StringProperty(title="Name", default="value")
     address = IntProperty(default=0x53, title="Address")
     chip = SelectProperty(ChipTypes, title="Chip", default=ChipTypes.ADXL345)
-    interval = TimeDeltaProperty(title="Sampling Period", default={"microseconds": 50000})
-    sample = SelectProperty(SampleTypes, title="Sample Type", default=SampleTypes.Stats)
+    interval = TimeDeltaProperty(
+        title="Sampling Period",
+        default={
+            "microseconds": 50000})
+    sample = SelectProperty(
+        SampleTypes,
+        title="Sample Type",
+        default=SampleTypes.Stats)
     range = SelectProperty(Ranges, title="G Range", default=Ranges._2G)
 
     def configure(self, context):
@@ -82,9 +88,7 @@ class AccelerometerChip(Block):
         self._job = None
         if self.sample != SampleTypes.Last:
             self._samples = []
-            #self._job = Job(self._sample, self.interval, True)
             self._thread = threading.Thread(target=self._sample_threaded)
-            sleeptime = self.interval.seconds + self.interval.microseconds * 1e-6
             self._kill = False
             self._thread.start()
 
@@ -104,11 +108,11 @@ class AccelerometerChip(Block):
     def process_signals(self, signals):
         if self.sample == SampleTypes.Last:
             value = self._accel.read()
-            gval = sum(n**2 for n in value)
+            gval = sum(n ** 2 for n in value)
             gval = math.sqrt(gval)
             value = {"last": value,
                      "last_magnitude": gval,
-            }
+                     }
         else:
             samples = []
             pop = self._samples.pop
@@ -150,11 +154,10 @@ class AccelerometerChip(Block):
                      "max_magnitude": max_g,
                      "min_magnitude": min_g,
                      "last_magnitude": sample_gs[-1]
-            }
+                     }
 
         name = self.signal_name
         for s in signals:
             setattr(s, name, value)
 
         self.notify_signals(signals)
-
