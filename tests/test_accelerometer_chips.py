@@ -1,15 +1,16 @@
 import time
 import threading
+from time import sleep
+from unittest.mock import patch
+from nio.testing.block_test_case import NIOBlockTestCase
+from nio.signal.base import Signal
+from ..accelerometer_chip_block import \
+    AccelerometerChip, ChipTypes, SampleTypes, Ranges
 
-from nio.modules.threading import sleep
-from nio.util.support.block_test_case import NIOBlockTestCase
-from nio.modules.scheduler import SchedulerModule
-from nio.common.signal.base import Signal
-
-from ..accelerometer_chip_block import AccelerometerChip, ChipTypes, SampleTypes, Ranges
 
 def make_signals(num=1):
     return [Signal({"value": "test"}) for _ in range(num)]
+
 
 class keep_calling(object):
     def __init__(self, function, *args, **kwargs):
@@ -26,11 +27,13 @@ class keep_calling(object):
         while not self._kill:
             self.function(*self.args, **self.kwargs)
 
+
 class TestAccelerometer(NIOBlockTestCase):
     def signals_notified(self, signals):
         self._signals = signals
 
-    def test_accelerometer(self):
+    @patch("blocks.adxl345.acceleromter_chip_block.adxl345")
+    def test_accelerometer(self, mock_smbus):
         '''Doesn't do a true test. Just tries out the possibilities and prints the results'''
         print("Testing Accelerometer")
 
