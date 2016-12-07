@@ -4,14 +4,13 @@ import math
 import statistics
 import threading
 import time
-
+from nio.block.base import Block
+from nio.properties.select import SelectProperty
+from nio.properties.int import IntProperty
+from nio.properties.string import StringProperty
+from nio.properties.timedelta import TimeDeltaProperty
+from nio.util.discovery import discoverable
 from . import adxl345
-from nio.common.block.base import Block
-from nio.metadata.properties.select import SelectProperty
-from nio.metadata.properties.int import IntProperty
-from nio.metadata.properties.string import StringProperty
-from nio.metadata.properties.timedelta import TimeDeltaProperty
-from nio.common.discovery import Discoverable, DiscoverableType
 
 
 def get_adxl345():
@@ -57,7 +56,7 @@ class Ranges(Enum):
     _16G = 16
 
 
-@Discoverable(DiscoverableType.block)
+@discoverable
 class AccelerometerChip(Block):
 
     """ A block enriches incoming signals with the current values of a
@@ -79,14 +78,14 @@ class AccelerometerChip(Block):
 
     def configure(self, context):
         super().configure(context)
-        if self.chip == ChipTypes.ADXL345:
+        if self.chip() == ChipTypes.ADXL345:
             obj = get_adxl345()
 
-        self._accel = obj(self.address)
-        self._accel.set_range(self.range.value)
+        self._accel = obj(self.address())
+        self._accel.set_range(self.range().value)
 
         self._job = None
-        if self.sample != SampleTypes.Last:
+        if self.sample() != SampleTypes.Last:
             self._samples = []
             self._thread = threading.Thread(target=self._sample_threaded)
             self._kill = False
@@ -97,7 +96,7 @@ class AccelerometerChip(Block):
         self._kill = True
 
     def _sample_threaded(self):
-        sleeptime = self.interval.seconds + self.interval.microseconds * 1e-6
+        sleeptime = self.interval().seconds + self.interval().microseconds * 1e-6
         while not self._kill:
             self._sample()
             time.sleep(sleeptime)
@@ -106,7 +105,7 @@ class AccelerometerChip(Block):
         self._samples.append(self._accel.read())
 
     def process_signals(self, signals):
-        if self.sample == SampleTypes.Last:
+        if self.sample() == SampleTypes.Last:
             value = self._accel.read()
             gval = sum(n ** 2 for n in value)
             gval = math.sqrt(gval)
@@ -121,7 +120,7 @@ class AccelerometerChip(Block):
                 samples.append(pop(0))
 
             if not samples:
-                self._logger.error("Accelerometer has no samples!")
+                self.logger.error("Accelerometer has no samples!")
                 return
 
             x, y, z = zip(*samples)
@@ -156,7 +155,7 @@ class AccelerometerChip(Block):
                      "last_magnitude": sample_gs[-1]
                      }
 
-        name = self.signal_name
+        name = self.signal_name()
         for s in signals:
             setattr(s, name, value)
 
