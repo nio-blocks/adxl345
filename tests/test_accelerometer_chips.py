@@ -29,8 +29,6 @@ class TestAccelerometer(NIOBlockTestCase):
     def setUp(self):
         super().setUp()
         sys.modules['smbus'] = MagicMock()
-        # sys.modules['.adxl345.py'] = MagicMock()
-        # sys.modules['statistics'] = MagicMock()
         from ..accelerometer_chip_block import \
             AccelerometerChip, ChipTypes, SampleTypes, Ranges
         global AccelerometerChip, ChipTypes, SampleTypes, Ranges
