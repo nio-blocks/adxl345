@@ -96,7 +96,8 @@ class AccelerometerChip(Block):
         self._kill = True
 
     def _sample_threaded(self):
-        sleeptime = self.interval().seconds + self.interval().microseconds * 1e-6
+        sleeptime = self.interval().seconds \
+                    + self.interval().microseconds * 1e-6
         while not self._kill:
             self._sample()
             time.sleep(sleeptime)

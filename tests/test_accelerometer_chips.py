@@ -1,15 +1,11 @@
 import time
+import sys
 import threading
-from time import sleep
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock, mock_open
+
 from nio.testing.block_test_case import NIOBlockTestCase
 from nio.signal.base import Signal
-from ..accelerometer_chip_block import \
-    AccelerometerChip, ChipTypes, SampleTypes, Ranges
-
-
-def make_signals(num=1):
-    return [Signal({"value": "test"}) for _ in range(num)]
+from nio.block.terminals import DEFAULT_TERMINAL
 
 
 class keep_calling(object):
@@ -29,45 +25,36 @@ class keep_calling(object):
 
 
 class TestAccelerometer(NIOBlockTestCase):
-    def signals_notified(self, signals):
-        self._signals = signals
 
-    @patch("blocks.adxl345.acceleromter_chip_block.adxl345")
-    def test_accelerometer(self, mock_smbus):
-        '''Doesn't do a true test. Just tries out the possibilities and prints the results'''
-        print("Testing Accelerometer")
+    def setUp(self):
+        super().setUp()
+        sys.modules['smbus'] = MagicMock()
+        from ..accelerometer_chip_block import \
+            AccelerometerChip, ChipTypes, SampleTypes, Ranges
+        global AccelerometerChip, ChipTypes, SampleTypes, Ranges
 
-        config = {"name": "value",
-                 "address": 0x53,
-                 "chip": ChipTypes.ADXL345,
-                 "interval": {"microseconds": 50000},
-                 "sample": SampleTypes.Last,
-                 "range": Ranges._2G
+    def test_accelerometer(self):
+        config = {
+            "name": "value",
+            "address": 0x53,
+            "chip": ChipTypes.ADXL345,
+            "interval": {"microseconds": 50000},
+            "sample": SampleTypes.Last,
+            "range": Ranges._2G
         }
         accel = AccelerometerChip()
-        self.configure_block(accel, config)
-
-        notified = 0
-
-        accel.process_signals(make_signals())
-        notified += 1
-        self.assert_num_signals_notified(notified, accel)
-
-        def sample(accel):
-            accel.process_signals(make_signals())
-            print("Accel Signals:", tuple(n.to_dict() for n in self._signals))
-            time.sleep(1)
-
-        print("Sampling only once / second")
-        keep_calling(sample, accel)
-        accel.stop()
-        del accel
-
-        accel = AccelerometerChip()
-        config["sample"] = SampleTypes.Stats
-        self.configure_block(accel, config)
+        with patch(AccelerometerChip.__module__ + '.adxl345') as mock_adxl345:
+            self.configure_block(accel, config)
+            mock_adxl345.ADXL345.read.return_value = [2, 3]
         accel.start()
-        print("Sampling Statistics")
-        keep_calling(sample, accel)
+        accel.process_signals([Signal({"value": "test"})])
+        self.assert_num_signals_notified(1, accel)
+        self.assertDictEqual(
+            self.last_notified[DEFAULT_TERMINAL][0].to_dict(),
+            {
+                'value': {
+                    'last': [2, 3],
+                    'last_magnitude': 3.605551275463989
+                }
+            })
         accel.stop()
-
