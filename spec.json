@@ -2,9 +2,12 @@
   "nio/AccelerometerChip": {
     "version": "0.0.1",
     "description": "",
+    "categories": [
+      "Hardware"
+    ],
+    "properties": {},
     "inputs": {},
     "outputs": {},
-    "properties": {},
     "commands": {}
   }
 }
