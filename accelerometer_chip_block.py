@@ -4,12 +4,11 @@ import math
 import statistics
 import threading
 import time
+
 from nio.block.base import Block
-from nio.properties.select import SelectProperty
-from nio.properties.int import IntProperty
-from nio.properties.string import StringProperty
-from nio.properties.timedelta import TimeDeltaProperty
-from nio.util.discovery import discoverable
+from nio.properties import SelectProperty, IntProperty, StringProperty, \
+    TimeDeltaProperty, VersionProperty
+
 from . import adxl345
 
 
@@ -56,13 +55,13 @@ class Ranges(Enum):
     _16G = 16
 
 
-@discoverable
 class AccelerometerChip(Block):
 
     """ A block enriches incoming signals with the current values of a
     set of input pins.
 
     """
+    version = VersionProperty("0.1.0")
     signal_name = StringProperty(title="Name", default="value")
     address = IntProperty(default=0x53, title="Address")
     chip = SelectProperty(ChipTypes, title="Chip", default=ChipTypes.ADXL345)

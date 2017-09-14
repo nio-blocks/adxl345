@@ -1,13 +1,57 @@
 {
   "nio/AccelerometerChip": {
-    "version": "0.0.1",
-    "description": "",
-    "categories": [
-      "Hardware"
-    ],
-    "properties": {},
-    "inputs": {},
-    "outputs": {},
+    "version": "0.1.0",
+    "description": "Read data from an accelerometer chip that are interfaced through I2C and SPI.",
+    "properties": {
+      "address": {
+        "title": "Address",
+        "type": "IntType",
+        "description": "Device address to connect to.",
+        "default": 83
+      },
+      "chip": {
+        "title": "Chip",
+        "type": "SelectType",
+        "description": "Type of accelerometer chip in use.",
+        "default": "ADXL345"
+      },
+      "interval": {
+        "title": "Sampling Period",
+        "type": "TimeDeltaType",
+        "description": "How often to read from the accelerometer.",
+        "default": {
+          "microseconds": 50000
+        }
+      },
+      "range": {
+        "title": "G Range",
+        "type": "SelectType",
+        "description": "Set the measurement range for 10-bit readings.",
+        "default": 2
+      },
+      "sample": {
+        "title": "Sample Type",
+        "type": "SelectType",
+        "description": "Select to either read the accelerometer's stats or most recent (last) reading.",
+        "default": "stats"
+      },
+      "signal_name": {
+        "title": "Name",
+        "type": "StringType",
+        "description": "Label name to apply to the output signal",
+        "default": "value"
+      }
+    },
+    "inputs": {
+      "default": {
+        "description": ""
+      }
+    },
+    "outputs": {
+      "default": {
+        "description": "Signal with the reading from the accelerometer instrument."
+      }
+    },
     "commands": {}
   }
 }
