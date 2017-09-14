@@ -1,7 +1,7 @@
 {
   "nio/AccelerometerChips": {
     "language": "Python",
-    "reference": "git@github.com:nio-blocks/accelerometer_chips.git@v0.1.0",
-    "version": "0.1.0"
+    "version": "0.1.0",
+    "url": "git://github.com/nio-blocks/accelerometer_chips.git"
   }
 }
