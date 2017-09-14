@@ -61,7 +61,7 @@ class AccelerometerChip(Block):
     set of input pins.
 
     """
-    version = VersionProperty("0.1.0")
+    version = VersionProperty("0.1.1")
     signal_name = StringProperty(title="Name", default="value")
     address = IntProperty(default=0x53, title="Address")
     chip = SelectProperty(ChipTypes, title="Chip", default=ChipTypes.ADXL345)
