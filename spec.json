@@ -1,7 +1,7 @@
 {
   "nio/AccelerometerChip": {
     "version": "0.1.1",
-    "description": "Read data from an accelerometer chip that are interfaced through I2C and SPI.",
+    "description": "Read data from an accelerometer chip that is interfaced through I2C and SPI.",
     "categories": [
       "hardware"
     ],
@@ -9,7 +9,7 @@
       "address": {
         "title": "Address",
         "type": "IntType",
-        "description": "Device address to connect to.",
+        "description": "Device address to connect.",
         "default": 83
       },
       "chip": {
@@ -41,13 +41,13 @@
       "signal_name": {
         "title": "Name",
         "type": "StringType",
-        "description": "Label name to apply to the output signal",
+        "description": "Label name to apply to the output signal.",
         "default": "value"
       }
     },
     "inputs": {
       "default": {
-        "description": ""
+        "description": "Any list of signals."
       }
     },
     "outputs": {
