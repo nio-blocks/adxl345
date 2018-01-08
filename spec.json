@@ -1,6 +1,6 @@
 {
   "nio/AccelerometerChip": {
-    "version": "0.1.1",
+    "version": "0.1.2",
     "description": "Read data from an accelerometer chip that is interfaced through I2C and SPI.",
     "categories": [
       "hardware"
