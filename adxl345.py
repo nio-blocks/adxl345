@@ -60,7 +60,7 @@ class ADXL345:
 
     # set the measurement range for 10-bit readings
     def setRange(self, range_flag):
-        value = bus.read_byte_data(self.address, DATA_FORMAT)
+        value = self.bus.read_byte_data(self.address, DATA_FORMAT)
 
         value &= ~0x0F
         value |= range_flag
