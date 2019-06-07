@@ -1,1 +1,1 @@
-smbus-cffi~=1.11
+smbus-cffi
